@@ -1,0 +1,47 @@
+{
+    "variables": {
+        "aws_access_key": "AKIAVTFAFRRAC3G5CLR7",
+        "aws_secret_key": "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",
+        "aws_subnet_id": "subnet-06edf0b7266e02edb"
+    },
+    "builders": [
+        {
+            "type": "amazon-ebs",
+            "access_key": "{{user `aws_access_key`}}",
+            "secret_key": "{{user `aws_secret_key`}}",
+            "subnet_id": "{{user `aws_subnet_id`}}",
+            "region": "us-east-1",
+            "instance_type": "t2.micro",
+            "ami_name": "bookapp-{{timestamp}}",
+            "source_ami_filter": {
+                "filters": {
+                    "virtualization-type": "hvm",
+                    "name": "*ubuntu/images/*ubuntu-focal-20.04-amd64-server-*",
+                    "root-device-type": "ebs"
+                },
+                "owners": ["099720109477"],
+                "most_recent": true
+            },
+            "security_group_filter": {
+                "filters": {
+                    "tag:Class": "packer"
+                }
+            },
+            "ssh_username": "ubuntu"
+        }
+    ],
+    "provisioners": [
+        {
+            "type": "shell",
+            "inline": [
+                "sudo apt-get update -y && sudo apt-get upgrade -y",
+                "sudo apt install python -y"
+            ]
+        },
+        {
+            "type" : "ansible",
+            "playbook_file": "/home/cloud_user/ansible/playbooks/website.yml",
+            "groups": ["web"]
+        }
+    ]
+}
